@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Permissões mínimas da janela principal do PhotoForge.",
+  "windows": ["main"],
+  "permissions": ["core:default", "core:event:default"]
+}

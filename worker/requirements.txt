@@ -1,0 +1,2 @@
+# O worker básico usa somente a biblioteca padrão do Python.
+# PyTorch/Intel XPU não é requisito para a reconstrução COLMAP desta fase.

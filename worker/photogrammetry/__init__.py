@@ -1,0 +1,1 @@
+"""PhotoForge local photogrammetry worker."""
