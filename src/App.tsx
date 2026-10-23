@@ -37,6 +37,7 @@ function StatusDot({ ok }: { ok: boolean }) {
 export default function App() {
   const [imagesDir, setImagesDir] = useState('');
   const [workspaceDir, setWorkspaceDir] = useState(defaultWorkspace);
+  const [matchingStrategy, setMatchingStrategy] = useState<'exhaustive' | 'sequential'>('exhaustive');
   const [environment, setEnvironment] = useState<EnvironmentStatus | null>(null);
   const [checking, setChecking] = useState(false);
   const [running, setRunning] = useState(false);
@@ -100,11 +101,12 @@ export default function App() {
     setProgress(0);
     setRunning(true);
     setStage('Preparando projeto');
-    setLogs((current) => [...current, 'Solicitando início da reconstrução esparsa...']);
+    setLogs((current) => [...current, `Solicitando reconstrução esparsa com correspondência ${matchingStrategy === 'exhaustive' ? 'exaustiva' : 'sequencial'}...`]);
     try {
       const id = await invoke<string>('start_reconstruction', {
         imagesDir: imagesDir.trim(),
         workspaceDir: workspaceDir.trim(),
+        matchingStrategy,
       });
       setJobId(id);
       setLogs((current) => [...current, `Tarefa iniciada: ${id}`]);
@@ -163,6 +165,10 @@ export default function App() {
               <label className="field-label" htmlFor="images-dir">PASTA DAS IMAGENS</label>
               <div className="path-field"><span className="field-prefix">▤</span><input id="images-dir" value={imagesDir} onChange={(event) => setImagesDir(event.target.value)} placeholder="/home/usuario/Fotos/Objeto" spellCheck={false} /><span className="field-type">DIRETÓRIO</span></div>
               <div className="field-hint">Formatos esperados: JPG, JPEG, PNG, TIFF e BMP. Use pelo menos duas fotografias.</div>
+              <div className="field-separator" />
+              <label className="field-label" htmlFor="matching-strategy">ESTRATÉGIA DE CORRESPONDÊNCIAS</label>
+              <div className="path-field matching-field"><span className="field-prefix">⇄</span><select id="matching-strategy" value={matchingStrategy} onChange={(event) => setMatchingStrategy(event.target.value as 'exhaustive' | 'sequential')} aria-describedby="matching-hint"><option value="exhaustive">Exaustiva — objeto ou cena com fotos sem ordem</option><option value="sequential">Sequencial — percurso, vídeo ou captura ordenada</option></select><span className="field-type">COLMAP</span></div>
+              <div className="field-hint" id="matching-hint">{matchingStrategy === 'exhaustive' ? 'Compara os pares de imagens; adequada a conjuntos pequenos e desordenados.' : 'Compara imagens vizinhas; reduz pares em trajetórias e sequências de captura.'}</div>
               <div className="field-separator" />
               <label className="field-label" htmlFor="workspace-dir">PASTA DE SAÍDA DO PROJETO</label>
               <div className="path-field"><span className="field-prefix">▱</span><input id="workspace-dir" value={workspaceDir} onChange={(event) => setWorkspaceDir(event.target.value)} placeholder="/home/usuario/Photo3DEsayProjects/MeuProjeto" spellCheck={false} /><span className="field-type">SAÍDA</span></div>

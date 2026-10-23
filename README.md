@@ -63,7 +63,7 @@ Ou execute `./scripts/test-linux.sh` depois de instalar dependências e gerar `p
 4. Clique em **Iniciar reconstrução**.
 5. O banco de dados será gravado em `database.db` e o modelo esparso em `sparse/` dentro da pasta de saída.
 
-O pipeline chama `feature_extractor`, `exhaustive_matcher` e `mapper` com as opções de GPU desativadas. Isso é intencional para ter uma linha de base reproduzível. A detecção de uma Intel Arc e a disponibilidade do PyTorch XPU são diagnósticos distintos: eles não demonstram que o COLMAP está usando a GPU. A aceleração será investigada em uma fase separada.
+O pipeline chama extração de características, correspondência e `mapper` com as opções de GPU desativadas. Escolha **Exaustiva** para conjuntos de fotos sem ordem (por exemplo, um objeto fotografado de vários lados) ou **Sequencial** para fotos feitas em trajetória, vídeo ou uma sequência ordenada; a correspondência sequencial compara imagens vizinhas e reduz o número de pares. O produto atual entrega apenas reconstrução esparsa. A reconstrução densa do COLMAP depende de recursos de GPU que não podem ser presumidos numa Intel Arc; vamos verificar o suporte real da instalação antes de habilitar essa etapa.
 
 ## Limitações desta fase
 
@@ -73,6 +73,11 @@ O pipeline chama `feature_extractor`, `exhaustive_matcher` e `mapper` com as op�
 - O modo de desenvolvimento é o alvo desta entrega. `bundle.active` está desligado enquanto recursos Python e dependências são organizados para empacotamento posterior.
 - O worker procura o COLMAP no `PATH`.
 
-## Próxima fase sugerida
+## Prioridade de desenvolvimento
 
-Adicionar seletor de diretórios nativo, cancelamento seguro, descoberta confiável de saídas COLMAP e visualizador 3D para o modelo esparso, antes de trabalhar na reconstrução densa e texturização.
+1. Melhorar o diagnóstico do conjunto de fotos e validar as câmeras/imagens registradas pelo SfM.
+2. Tornar a reconstrução esparsa repetível, com relatório de saída e mensagens de falha úteis.
+3. Implementar reconstrução densa (mapas de profundidade e nuvem de pontos) com detecção de compatibilidade; avaliar OpenMVS como alternativa quando a compilação COLMAP não suportar dense MVS na máquina.
+4. Gerar e validar malhas e texturas somente depois de uma nuvem densa confiável.
+
+Recursos não essenciais à reconstrução fotogramétrica ficam em espera. Não declarar suporte à GPU Intel Arc até haver teste real de compatibilidade e comparação com a linha de base CPU.
