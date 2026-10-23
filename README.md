@@ -1,4 +1,4 @@
-# PhotoForge
+# Photo3DEsay
 
 Aplicativo desktop independente para fotogrametria local, com Tauri 2, React/TypeScript, Rust e um worker Python que coordena o COLMAP.
 
@@ -32,7 +32,7 @@ python3 --version
 colmap -h
 ```
 
-O script aceita outro nome/caminho do Python com `PHOTOFORGE_PYTHON`, por exemplo `PHOTOFORGE_PYTHON=/usr/bin/python3`.
+O script aceita outro nome/caminho do Python com `PHOTO3DESAY_PYTHON`, por exemplo `PHOTO3DESAY_PYTHON=/usr/bin/python3`.
 
 ## Executar em modo desenvolvimento
 
@@ -58,7 +58,7 @@ Ou execute `./scripts/test-linux.sh` depois de instalar dependências e gerar `p
 ## Primeiro teste de reconstrução
 
 1. Separe uma pasta com pelo menos duas fotos da mesma cena, com boa sobreposição entre imagens.
-2. Inicie PhotoForge e clique em **Verificar ambiente**.
+2. Inicie Photo3DEsay e clique em **Verificar ambiente**.
 3. Informe os caminhos absolutos da pasta de fotos e da pasta de saída.
 4. Clique em **Iniciar reconstrução**.
 5. O banco de dados será gravado em `database.db` e o modelo esparso em `sparse/` dentro da pasta de saída.

@@ -28,7 +28,7 @@ struct ImageInspection {
 }
 
 fn configured_python() -> String {
-    std::env::var("PHOTOFORGE_PYTHON").unwrap_or_else(|_| "python3".to_string())
+    std::env::var("PHOTO3DESAY_PYTHON").unwrap_or_else(|_| "python3".to_string())
 }
 
 fn command_output(program: &str, args: &[&str]) -> Option<String> {
@@ -165,7 +165,7 @@ fn start_reconstruction(
     let worker_path = worker_script_path(&app)?;
     let python = configured_python();
     std::thread::Builder::new()
-        .name(format!("photoforge-{job_id}"))
+        .name(format!("photo3desay-{job_id}"))
         .spawn(move || {
             run_worker(app_handle, &python, &worker_path, &images, &workspace, &job_id);
         })
@@ -241,7 +241,7 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![get_environment_status, inspect_images, start_reconstruction])
         .run(tauri::generate_context!())
-        .expect("erro ao iniciar PhotoForge");
+        .expect("erro ao iniciar Photo3DEsay");
 }
 
 #[cfg(test)]
@@ -250,7 +250,7 @@ mod tests {
     use std::fs::File;
 
     fn temp_dir(label: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(format!("photoforge-test-{}-{label}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("photo3desay-test-{}-{label}", std::process::id()));
         let _ = fs::remove_dir_all(&path);
         fs::create_dir_all(&path).expect("criar diretório temporário");
         path

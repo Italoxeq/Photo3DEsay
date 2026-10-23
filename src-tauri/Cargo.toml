@@ -1,12 +1,12 @@
 [package]
-name = "photoforge"
+name = "photo3desay"
 version = "0.1.0"
 description = "Aplicativo desktop de fotogrametria local"
-authors = ["PhotoForge Contributors"]
+authors = ["Photo3DEsay Contributors"]
 edition = "2021"
 
 [lib]
-name = "photoforge_lib"
+name = "photo3desay_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

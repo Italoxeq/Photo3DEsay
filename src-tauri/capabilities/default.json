@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Permissões mínimas da janela principal do PhotoForge.",
+  "description": "Permissões mínimas da janela principal do Photo3DEsay.",
   "windows": ["main"],
   "permissions": ["core:default", "core:event:default"]
 }

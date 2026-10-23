@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI worker for PhotoForge's initial COLMAP sparse reconstruction pipeline."""
+"""CLI worker for Photo3DEsay's initial COLMAP sparse reconstruction pipeline."""
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ def reconstruct(images_dir: Path, workspace_dir: Path, colmap_executable: str = 
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Worker local de fotogrametria do PhotoForge")
+    parser = argparse.ArgumentParser(description="Worker local de fotogrametria do Photo3DEsay")
     subparsers = parser.add_subparsers(dest="command", required=True)
     reconstruct_parser = subparsers.add_parser("reconstruct", help="executa SfM esparso com COLMAP")
     reconstruct_parser.add_argument("--images", type=Path, required=True, help="pasta de entrada de imagens")

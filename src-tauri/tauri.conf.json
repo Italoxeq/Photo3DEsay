@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PhotoForge",
+  "productName": "Photo3DEsay",
   "version": "0.1.0",
-  "identifier": "com.photoforge.desktop",
+  "identifier": "com.italoxeq.photo3desay",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "PhotoForge — Reconstruction Studio",
+        "title": "Photo3DEsay — Reconstruction Studio",
         "width": 1440,
         "height": 960,
         "minWidth": 920,

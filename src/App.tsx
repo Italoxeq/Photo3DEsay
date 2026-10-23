@@ -20,7 +20,7 @@ type WorkerEvent = {
   progress?: number;
 };
 
-const defaultWorkspace = '~/PhotoForgeProjects/PrimeiroProjeto';
+const defaultWorkspace = '~/Photo3DEsayProjects/PrimeiroProjeto';
 
 function parseWorkerEvent(raw: string): WorkerEvent {
   try {
@@ -44,7 +44,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState('Pronto para começar');
   const [logs, setLogs] = useState<string[]>([
-    'PhotoForge inicializado. Verifique o ambiente antes da primeira reconstrução.',
+    'Photo3DEsay inicializado. Verifique o ambiente antes da primeira reconstrução.',
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,7 +120,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand-lockup">
           <div className="brand-mark"><span /><span /><span /></div>
-          <div><div className="brand-name">PhotoForge</div><div className="brand-subtitle">RECONSTRUCTION STUDIO</div></div>
+          <div><div className="brand-name">Photo3DEsay</div><div className="brand-subtitle">RECONSTRUCTION STUDIO</div></div>
         </div>
         <div className="sidebar-section-label">ESPAÇO DE TRABALHO</div>
         <button className="nav-item active" type="button"><span className="nav-icon">▦</span>Reconstrução</button>
@@ -133,7 +133,7 @@ export default function App() {
             <div className="engine-name">COLMAP CLI</div>
             <div className="engine-caption">Structure from Motion</div>
           </div>
-          <div className="version-row"><span>PhotoForge Alpha</span><span>v0.1.0</span></div>
+          <div className="version-row"><span>Photo3DEsay Alpha</span><span>v0.1.0</span></div>
         </div>
       </aside>
 
@@ -165,7 +165,7 @@ export default function App() {
               <div className="field-hint">Formatos esperados: JPG, JPEG, PNG, TIFF e BMP. Use pelo menos duas fotografias.</div>
               <div className="field-separator" />
               <label className="field-label" htmlFor="workspace-dir">PASTA DE SAÍDA DO PROJETO</label>
-              <div className="path-field"><span className="field-prefix">▱</span><input id="workspace-dir" value={workspaceDir} onChange={(event) => setWorkspaceDir(event.target.value)} placeholder="/home/usuario/PhotoForgeProjects/MeuProjeto" spellCheck={false} /><span className="field-type">SAÍDA</span></div>
+              <div className="path-field"><span className="field-prefix">▱</span><input id="workspace-dir" value={workspaceDir} onChange={(event) => setWorkspaceDir(event.target.value)} placeholder="/home/usuario/Photo3DEsayProjects/MeuProjeto" spellCheck={false} /><span className="field-type">SAÍDA</span></div>
               <div className="field-hint">O banco de dados e o modelo esparso serão gravados nessa pasta.</div>
               <div className="notice"><span className="notice-icon">i</span><div><strong>Reconstrução local</strong><p>As fotografias são processadas no seu computador. Não há envio para servidores externos.</p></div></div>
               <div className="panel-footer"><div className="footer-note"><span className="tiny-lock">▣</span>CPU como modo de compatibilidade inicial</div><button className="primary-button" onClick={startReconstruction} disabled={running || !imagePathValid || !workspacePathValid || !environment?.colmap_available} type="button"><span>{running ? 'Reconstruindo...' : 'Iniciar reconstrução'}</span><span className="button-arrow">↗</span></button></div>
@@ -196,7 +196,7 @@ export default function App() {
 
           <section className="panel logs-panel"><div className="logs-heading"><div><div className="section-kicker">SAÍDA DO PROCESSO</div><h2>Registro de execução</h2></div><span className="log-count">{logs.length} mensagens</span></div><div className="log-console" role="log" aria-live="polite">{logs.slice(-8).map((line, index) => <div className="log-line" key={`${index}-${line}`}><span className="log-prompt">›</span><span>{line}</span></div>)}</div></section>
           {error && <div className="error-banner" role="alert"><strong>Ocorreu um erro</strong><span>{error}</span><button type="button" onClick={() => setError(null)} aria-label="Fechar erro">×</button></div>}
-          <footer className="page-footer"><span>PhotoForge · Ferramenta local de fotogrametria</span><span>{jobId ? `Tarefa ${jobId}` : 'Nenhuma tarefa ativa'}</span></footer>
+          <footer className="page-footer"><span>Photo3DEsay · Ferramenta local de fotogrametria</span><span>{jobId ? `Tarefa ${jobId}` : 'Nenhuma tarefa ativa'}</span></footer>
         </div>
       </section>
     </main>
