@@ -142,7 +142,12 @@ fn start_reconstruction(
     app: tauri::AppHandle,
     images_dir: String,
     workspace_dir: String,
+    matching_strategy: String,
 ) -> Result<String, String> {
+    let matching_strategy = matching_strategy.trim().to_ascii_lowercase();
+    if !["exhaustive", "sequential"].contains(&matching_strategy.as_str()) {
+        return Err("Estratégia de correspondência inválida.".to_string());
+    }
     let images = expand_user_path(images_dir.trim());
     let workspace = expand_user_path(workspace_dir.trim());
     if !images.is_dir() {
@@ -167,7 +172,7 @@ fn start_reconstruction(
     std::thread::Builder::new()
         .name(format!("photo3desay-{job_id}"))
         .spawn(move || {
-            run_worker(app_handle, &python, &worker_path, &images, &workspace, &job_id);
+            run_worker(app_handle, &python, &worker_path, &images, &workspace, &matching_strategy, &job_id);
         })
         .map_err(|e| format!("Não foi possível iniciar a tarefa: {e}"))?;
     Ok(job_id)
@@ -199,8 +204,15 @@ fn emit_local_event(app: &tauri::AppHandle, event_type: &str, stage: &str, messa
     emit_worker_event(app, &json.to_string());
 }
 
-fn run_worker(app: tauri::AppHandle, python: &str, script: &Path, images: &Path, workspace: &Path, job_id: &str) {
-    emit_local_event(&app, "status", "Preparando projeto", "Iniciando worker Python em modo CPU compatível.", 0);
+fn run_worker(
+    app: tauri::AppHandle, python: &str, script: &Path,
+    images: &Path, workspace: &Path, matching_strategy: &str, job_id: &str,
+) {
+    emit_local_event(
+        &app, "status", "Preparando projeto",
+        &format!("Iniciando worker Python em modo CPU; correspondência {matching_strategy}."),
+        0,
+    );
     if !script.is_file() {
         emit_local_event(&app, "error", "Falha", &format!("Worker não encontrado: {}", script.display()), 0);
         return;
@@ -211,6 +223,7 @@ fn run_worker(app: tauri::AppHandle, python: &str, script: &Path, images: &Path,
         .arg("--images").arg(images)
         .arg("--workspace").arg(workspace)
         .arg("--use-gpu").arg("cpu")
+        .arg("--matching-strategy").arg(matching_strategy)
         .stdout(Stdio::piped())
         .stderr(Stdio::stdout())
         .spawn();

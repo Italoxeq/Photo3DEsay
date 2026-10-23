@@ -1,70 +1,86 @@
-# Roadmap de produto — Photo3DEsay
+# Roteiro focado em fotogrametria — Photo3DEsay
 
-## Objetivo
+## Objetivo atual
 
-Construir um aplicativo desktop profissional de fotogrametria, com Linux como plataforma inicial de desenvolvimento e validação, mirando amplitude funcional comparável à de soluções maduras como 3DF Zephyr. A meta é funcionalidade verificável e qualidade de resultado — não copiar código, interface proprietária ou tecnologia fechada de terceiros.
+Construir primeiro um pipeline de fotogrametria confiável e mensurável: fotografias de entrada → calibração/estimativa de câmeras → correspondências → reconstrução esparsa → reconstrução densa → malha → textura. Recursos complementares só entram depois que a cadeia fotogramétrica entregar resultados reproduzíveis.
 
-## Princípios técnicos
+## Regras de desenvolvimento
 
-- **Rust + Tauri:** ciclo de vida do aplicativo, tarefas, cancelamento, logs, configuração e integração segura com o worker.
-- **TypeScript + React:** interface e painéis de projeto.
-- **Python:** orquestração dos pipelines e integração com ferramentas científicas.
-- **COLMAP:** SfM, estimativa de câmeras e base da reconstrução multivista.
-- **Integrações modulares:** avaliar ferramentas complementares para reconstrução densa, malhas, texturização, processamento geoespacial e Gaussian Splatting; não presumir que COLMAP sozinho cobre todas as entregas.
-- **Aceleração:** começar com uma linha de base CPU. Medir separadamente suporte real do COLMAP, APIs de GPU e Intel Arc; não declarar aceleração por detectar apenas a GPU ou o PyTorch XPU.
-- **Linux primeiro:** CI, builds de desenvolvimento e testes Linux. Não adicionar build de Windows sem solicitação.
+- Trabalhar primeiro em Linux; não criar build de Windows nesta etapa.
+- Rust + Tauri coordenam tarefas e exibem eventos; TypeScript/React é a interface; Python orquestra ferramentas fotogramétricas.
+- COLMAP é o motor base para SfM e reconstrução esparsa.
+- Usar CPU como linha de base reproduzível. Detecção da Intel Arc ou disponibilidade do PyTorch XPU não equivale a aceleração COLMAP.
+- Não afirmar uma reconstrução como bem-sucedida só porque o processo terminou: conferir o modelo produzido e registrar as métricas disponíveis.
+- Cada etapa tem testes unitários, teste de integração com COLMAP e um dataset de referência antes de avançar.
+- Manter recursos, opções e mensagens em português; não inventar percentuais de progresso.
 
-## Etapas
+## Fase 1 — Preparação e registro esparso
 
-### Fase 1 — Fundação confiável
-- [x] Estrutura inicial Tauri + React/TypeScript + Rust + worker Python.
-- [x] Pipeline inicial COLMAP para reconstrução esparsa.
-- [x] Testes unitários básicos do worker.
-- [ ] CI Linux verde: testes Python, compilação TypeScript, testes Rust.
-- [ ] Validação real com um conjunto de fotos documentado.
-- [ ] Relatório de diagnóstico do ambiente e logs legíveis.
+**Estado:** em desenvolvimento.
 
-**Critério de saída:** iniciar a aplicação e concluir uma reconstrução esparsa de teste sem erro; artefatos e logs devem ser verificáveis.
+- [x] Estrutura do app desktop e worker.
+- [x] Validação básica da pasta e mínimo de duas imagens.
+- [x] Pipeline COLMAP CPU: extração de características, correspondência e mapper.
+- [x] Opção de correspondência exaustiva ou sequencial, apropriada a diferentes tipos de captura.
+- [ ] Melhorar relatório de diagnóstico de imagens: arquivos ilegíveis, dimensões, duplicatas e avisos sobre fotos com pouca informação.
+- [ ] Exibir número de imagens registradas versus total e quantidade de pontos 3D.
+- [ ] Criar teste de integração com um dataset pequeno, versionado ou obtido de fonte redistribuível documentada.
+- [ ] Confirmar CI Linux verde em Python, TypeScript e Rust e executar uma reconstrução real no computador-alvo.
 
-### Fase 2 — Pipeline fotogramétrico completo
-- [ ] Gerenciamento de projetos e imagens, miniaturas, metadados e validação de sobreposição.
-- [ ] SfM: extração/matching, calibração e registro de câmeras.
-- [ ] Reconstrução densa: mapa de profundidade e nuvem de pontos densa.
-- [ ] Filtragem, limpeza e exportação de nuvem de pontos.
-- [ ] Progresso por etapa baseado em eventos reais; cancelamento e recuperação de falhas.
+**Critério de saída:** o dataset de referência conclui SfM; modelo, número de câmeras registradas, pontos 3D, logs e duração ficam registrados. Falhas devem identificar a etapa que parou.
 
-### Fase 3 — Malha e qualidade visual
-- [ ] Geração de malha por integração adequada (avaliar COLMAP, OpenMVS e alternativas).
-- [ ] Limpeza, simplificação, fechamento de buracos e normais.
-- [ ] Texturização multivista com seleção de imagens/câmeras e tratamento de costuras.
-- [ ] Exportação e reimportação de OBJ/MTL, PLY, GLB/glTF e formatos suportados pelos motores escolhidos.
-- [ ] Visualizador 3D interativo: orbitar, pan, zoom, enquadrar, alternar pontos/malha/texturas e inspecionar câmeras.
+## Fase 2 — Qualidade da reconstrução esparsa
 
-### Fase 4 — Ferramentas de edição e medição
-- [ ] Recorte e seleção de regiões, remoção de outliers e edição não destrutiva.
-- [ ] Escala e sistema de coordenadas com alvos/pontos de controle.
-- [ ] Medidas de distância, área, ângulo e volume, com unidades explícitas.
-- [ ] Seções, perfis e linhas de contorno quando suportados pelos dados.
+- [ ] Inspecionar o modelo resultante com ferramentas do COLMAP e extrair métricas verificáveis.
+- [ ] Identificar imagens não registradas e componentes desconectados.
+- [ ] Permitir ajuste seguro da estratégia de correspondência e parâmetros que afetem tempo, RAM e qualidade.
+- [ ] Adicionar retomada/limpeza de execução interrompida sem destruir projetos existentes.
+- [ ] Gerar relatório de execução (parâmetros, versão COLMAP, fotos de entrada, fotos registradas, pontos e advertências).
 
-### Fase 5 — Entregas avançadas
-- [ ] Ortofotos e modelos de elevação (DSM/DTM), com referência espacial e exportação geográfica.
-- [ ] Importação/registro de nuvens externas e avaliação de fluxos LiDAR.
-- [ ] Gaussian Splatting com treino, visualização e exportação apropriados.
-- [ ] Relatório de reconstrução: imagens registradas, câmeras, resolução, parâmetros, duração, métricas e limitações.
-- [ ] Exportação em lote e formatos adicionais priorizados por casos reais de uso.
+**Critério de saída:** resultados repetíveis e relatório suficiente para comparar parâmetros em datasets de referência.
 
-### Fase 6 — Desempenho e robustez
-- [ ] Bancada de desempenho reproduzível: tempo por etapa, RAM, CPU, VRAM/GPU e tamanho dos artefatos.
-- [ ] Uso eficiente de memória, processamento em blocos, recuperação e limites configuráveis.
-- [ ] Investigar e testar aceleração Intel Arc por caminho suportado, comparando qualidade e tempo com CPU.
-- [ ] Testes com datasets pequenos, médios e grandes; validação de falhas e projetos interrompidos.
-- [ ] Documentar compatibilidade por sistema, GPU e dependência.
-- [ ] Empacotamento e atualizações depois que os pipelines forem confiáveis.
+## Fase 3 — Reconstrução densa
 
-## Como mediremos paridade
+- [ ] Detectar, por comando e teste funcional, se a instalação do COLMAP oferece PatchMatch Stereo e qual backend de GPU é suportado.
+- [ ] Executar undistortion → mapas de profundidade/normais → fusão em nuvem densa.
+- [ ] Configurar limites de resolução e cache para controlar RAM, disco e VRAM.
+- [ ] Comparar densidade, cobertura, tempo e consumo contra um dataset de referência.
+- [ ] Avaliar OpenMVS ou outra ferramenta complementar para sistemas sem backend compatível com a GPU disponível.
 
-A paridade será uma matriz verificável por funcionalidade e não uma afirmação genérica. Cada linha terá: estado (não iniciado / experimental / aprovado), ferramenta usada, formatos aceitos, teste de regressão, dataset de referência, uso de memória e limitações conhecidas. Priorizar primeiro reconstrução confiável, nuvem densa, malha texturizada e visualizador; depois medições, dados geoespaciais e splats.
+**Regra de compatibilidade:** não presumir que Intel Arc, PyTorch XPU ou um pacote COLMAP com CPU habilitem PatchMatch Stereo. Se o backend não for suportado, explicar a limitação e usar apenas um caminho alternativo que tenha sido instalado e validado.
 
-## Estado atual
+**Critério de saída:** nuvem densa válida em arquivo PLY e métricas verificadas; o erro de falta de suporte precisa ser apresentado antes da execução longa sempre que puder ser detectado.
 
-O repositório contém apenas o esqueleto inicial e um pipeline esparso. Ainda não é equivalente ao 3DF Zephyr. A CI Linux foi adicionada e precisa terminar com sucesso antes de marcar a fundação como aprovada.
+## Fase 4 — Malha e texturização
+
+- [ ] Gerar malha de superfície a partir da nuvem densa.
+- [ ] Avaliar qualidade, buracos, normais, componentes e densidade de triângulos.
+- [ ] Texturizar a malha usando as imagens e câmeras registradas; reduzir costuras e áreas sem cobertura.
+- [ ] Exportar e reabrir arquivos de teste (PLY, OBJ/MTL e outros formatos selecionados).
+- [ ] Preservar os artefatos intermediários e registrar parâmetros de cada etapa.
+
+**Critério de saída:** malha com textura que abre num visualizador independente, com checagem de integridade automatizada.
+
+## Fase 5 — Inspeção visual e fluxo de projeto
+
+- [ ] Visualizador 3D interativo para nuvem esparsa/densa e malha: orbitar, pan, zoom e enquadrar.
+- [ ] Inspeção de câmeras registradas/não registradas e de fotografias associadas.
+- [ ] Importação/organização de imagens e configuração do projeto mais segura.
+- [ ] Cancelamento de tarefa e retomada com estado inequívoco.
+
+Esta fase serve o pipeline fotogramétrico e não deve atrasar a validação da reconstrução.
+
+## Fase 6 — Desempenho e validação
+
+- [ ] Dataset pequeno, médio e grande com medições reproduzíveis de qualidade, tempo, RAM, CPU, GPU e espaço em disco.
+- [ ] Ajustar resolução de imagens, número de características, estratégia de correspondência e cache baseado em medições.
+- [ ] Investigar aceleração Intel Arc por caminho oficialmente suportado e comparar os resultados com CPU.
+- [ ] Documentar dependências, backend, limitações e formas de reprodução de cada teste.
+
+## Em espera
+
+Gaussian Splatting, ortofotos, DSM/DTM, ferramentas de medição, LiDAR, processamento geoespacial avançado, recursos de colaboração e empacotamento final ficam em backlog até a cadeia SfM → nuvem densa → malha → textura ser confiável.
+
+## Estado real
+
+O repositório ainda está em fase inicial: tem um worker COLMAP para SfM esparso e não está no nível funcional de um produto fotogramétrico maduro. A paridade será medida funcionalidade por funcionalidade, com testes e datasets; não será declarada apenas por existir uma interface semelhante.

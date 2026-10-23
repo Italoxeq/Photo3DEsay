@@ -36,31 +36,64 @@ def find_images(images_dir: Path) -> list[Path]:
     )
 
 
-def build_commands(images_dir: Path, workspace_dir: Path, colmap_executable: str = "colmap") -> list[tuple[str, list[str], int]]:
-    """Build the conservative CPU-only command sequence for sparse SfM."""
+def build_commands(
+    images_dir: Path,
+    workspace_dir: Path,
+    colmap_executable: str = "colmap",
+    matching_strategy: str = "exhaustive",
+    sequential_overlap: int = 10,
+) -> list[tuple[str, list[str], int]]:
+    """Build a reproducible CPU-first SfM command sequence.
+
+    Exhaustive matching suits unordered object/photo sets. Sequential matching
+    reduces pair count for photos captured along a route or from a video.
+    """
+    if matching_strategy not in {"exhaustive", "sequential"}:
+        raise ValueError(f"Estratégia de correspondência inválida: {matching_strategy}")
+    if not 2 <= sequential_overlap <= 100:
+        raise ValueError("A sobreposição sequencial deve estar entre 2 e 100 imagens.")
+
     database = workspace_dir / "database.db"
     sparse_dir = workspace_dir / "sparse"
+    if matching_strategy == "sequential":
+        matcher = [
+            colmap_executable, "sequential_matcher",
+            "--database_path", str(database),
+            "--SequentialMatching.overlap", str(sequential_overlap),
+            "--FeatureMatching.use_gpu", "0",
+        ]
+        matcher_stage = "Correspondência sequencial"
+    else:
+        matcher = [
+            colmap_executable, "exhaustive_matcher",
+            "--database_path", str(database),
+            "--FeatureMatching.use_gpu", "0",
+        ]
+        matcher_stage = "Correspondência exaustiva"
+
     return [
         (
             "Extração de características",
-            [colmap_executable, "feature_extractor", "--database_path", str(database),
-             "--image_path", str(images_dir), "--FeatureExtraction.use_gpu", "0"],
+            [
+                colmap_executable, "feature_extractor",
+                "--database_path", str(database),
+                "--image_path", str(images_dir),
+                "--FeatureExtraction.use_gpu", "0",
+            ],
             15,
         ),
-        (
-            "Correspondência de imagens",
-            [colmap_executable, "exhaustive_matcher", "--database_path", str(database),
-             "--FeatureMatching.use_gpu", "0"],
-            50,
-        ),
+        (matcher_stage, matcher, 50),
         (
             "Reconstrução esparsa",
-            [colmap_executable, "mapper", "--database_path", str(database),
-             "--image_path", str(images_dir), "--output_path", str(sparse_dir)],
+            [
+                colmap_executable, "mapper",
+                "--database_path", str(database),
+                "--image_path", str(images_dir),
+                "--output_path", str(sparse_dir),
+            ],
             75,
         ),
     ]
-
 
 def run_stage(command: Sequence[str], stage: str, progress: int) -> None:
     emit("status", stage, f"Executando: {' '.join(command[:2])}", progress)
@@ -84,7 +117,13 @@ def run_stage(command: Sequence[str], stage: str, progress: int) -> None:
     emit("status", stage, f"Etapa concluída: {stage}", min(progress + 10, 95))
 
 
-def reconstruct(images_dir: Path, workspace_dir: Path, colmap_executable: str = "colmap") -> int:
+def reconstruct(
+    images_dir: Path,
+    workspace_dir: Path,
+    colmap_executable: str = "colmap",
+    matching_strategy: str = "exhaustive",
+    sequential_overlap: int = 10,
+) -> int:
     images = find_images(images_dir)
     if len(images) < 2:
         raise ValueError(f"Foram encontradas {len(images)} imagens; são necessárias pelo menos duas.")
@@ -96,7 +135,10 @@ def reconstruct(images_dir: Path, workspace_dir: Path, colmap_executable: str = 
     emit("status", "Preparando projeto", f"Encontradas {len(images)} imagens suportadas.", 5)
     emit("status", "Preparando projeto", "Modo CPU selecionado para garantir compatibilidade inicial.", 8)
 
-    for stage, command, progress in build_commands(images_dir, workspace_dir, colmap_executable):
+    for stage, command, progress in build_commands(
+        images_dir, workspace_dir, colmap_executable,
+        matching_strategy, sequential_overlap,
+    ):
         run_stage(command, stage, progress)
 
     model_dirs = [path for path in (workspace_dir / "sparse").iterdir() if path.is_dir()]
@@ -113,6 +155,14 @@ def build_parser() -> argparse.ArgumentParser:
     reconstruct_parser.add_argument("--images", type=Path, required=True, help="pasta de entrada de imagens")
     reconstruct_parser.add_argument("--workspace", type=Path, required=True, help="pasta de saída do projeto")
     reconstruct_parser.add_argument("--use-gpu", choices=("cpu",), default="cpu", help="a primeira fase suporta modo CPU")
+    reconstruct_parser.add_argument(
+        "--matching-strategy", choices=("exhaustive", "sequential"), default="exhaustive",
+        help="exaustiva para fotos sem ordem; sequencial para trajetórias/vídeo",
+    )
+    reconstruct_parser.add_argument(
+        "--sequential-overlap", type=int, default=10,
+        help="quantas imagens vizinhas considerar na correspondência sequencial (2–100)",
+    )
     reconstruct_parser.add_argument("--colmap", default="colmap", help="nome/caminho do executável COLMAP")
     return parser
 
@@ -122,7 +172,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "reconstruct":
-            return reconstruct(args.images.expanduser().resolve(), args.workspace.expanduser().resolve(), args.colmap)
+            return reconstruct(
+                args.images.expanduser().resolve(), args.workspace.expanduser().resolve(),
+                args.colmap, args.matching_strategy, args.sequential_overlap,
+            )
     except (ValueError, RuntimeError, OSError) as exc:
         emit("error", "Falha na reconstrução", str(exc), 0)
         return 1
