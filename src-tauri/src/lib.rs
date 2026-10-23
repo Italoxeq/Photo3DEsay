@@ -167,12 +167,13 @@ fn start_reconstruction(
 
     let job_id = format!("job-{}", NEXT_JOB_ID.fetch_add(1, Ordering::Relaxed));
     let app_handle = app.clone();
+    let worker_job_id = job_id.clone();
     let worker_path = worker_script_path(&app)?;
     let python = configured_python();
     std::thread::Builder::new()
         .name(format!("photo3desay-{job_id}"))
         .spawn(move || {
-            run_worker(app_handle, &python, &worker_path, &images, &workspace, &matching_strategy, &job_id);
+            run_worker(app_handle, &python, &worker_path, &images, &workspace, &matching_strategy, &worker_job_id);
         })
         .map_err(|e| format!("Não foi possível iniciar a tarefa: {e}"))?;
     Ok(job_id)
@@ -225,7 +226,7 @@ fn run_worker(
         .arg("--use-gpu").arg("cpu")
         .arg("--matching-strategy").arg(matching_strategy)
         .stdout(Stdio::piped())
-        .stderr(Stdio::stdout())
+        .stderr(Stdio::inherit())
         .spawn();
     let mut child = match child {
         Ok(child) => child,
